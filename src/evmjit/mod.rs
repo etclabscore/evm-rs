@@ -7,6 +7,10 @@ use inkwell::context::Context;
 use VM;
 use VMStatus;
 use Log;
+use HeaderParams;
+use Patch;
+use Memory;
+use Context as SputnikContext;
 use {AccountCommitment, AccountChange};
 use errors::{CommitError, RequireError};
 use bigint::{U256, H256, Address, Gas};
@@ -18,9 +22,17 @@ use util::opcode::Opcode;
 
 pub mod compiler;
 
-pub struct EvmJit;
+pub struct EvmJit<P: Patch> {
 
-impl VM for EvmJit {
+}
+
+impl<P: Patch> EvmJit<P> {
+    fn new(context: SputnikContext, block: HeaderParams) -> Self {
+        unimplemented!()
+    }
+}
+
+impl<P: Patch> VM for EvmJit<P> {
     fn commit_account(
         &mut self, 
         commitment: AccountCommitment
