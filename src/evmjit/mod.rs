@@ -4,8 +4,91 @@ use inkwell::types::BasicTypeEnum;
 use inkwell::attributes::Attribute;
 use inkwell::context::Context;
 
+use VM;
+use VMStatus;
+use Log;
+use {AccountCommitment, AccountChange};
+use errors::{CommitError, RequireError};
+use bigint::{U256, H256, Address, Gas};
+use pc::Instruction;
+use util::opcode::Opcode;
+
+#[cfg(feature = "std")] use std::collections::{HashSet as Set, hash_map::Values};
+#[cfg(not(feature = "std"))] use alloc::{collections::BTreeSet as Set, collections::btree_map as map, collections::btree_map::Values};
+
 pub mod compiler;
 
+pub struct EvmJit;
+
+impl VM for EvmJit {
+    fn commit_account(
+        &mut self, 
+        commitment: AccountCommitment
+    ) -> Result<(), CommitError> {
+        unimplemented!()
+    }
+
+    fn commit_blockhash(
+        &mut self, 
+        number: U256, 
+        hash: H256
+    ) -> Result<(), CommitError> {
+        unimplemented!()    
+    }
+
+    fn status(&self) -> VMStatus {
+        unimplemented!()    
+    }
+
+    fn peek(&self) -> Option<Instruction> {
+        unimplemented!()    
+    }
+
+    fn peek_opcode(&self) -> Option<Opcode> {
+        unimplemented!()    
+    }
+
+    fn step(&mut self) -> Result<(), RequireError> {
+        unimplemented!()    
+    }
+
+    fn accounts(&self) -> Values<Address, AccountChange> {
+        unimplemented!()    
+    }
+
+    fn used_addresses(&self) -> Set<Address> {
+        unimplemented!()    
+    }
+
+    fn out(&self) -> &[u8] {
+        unimplemented!()    
+    }
+
+    fn available_gas(&self) -> Gas {
+        unimplemented!()    
+    }
+
+    fn refunded_gas(&self) -> Gas {
+        unimplemented!()    
+    }
+
+    fn logs(&self) -> &[Log] {
+        unimplemented!()    
+    }
+
+    fn removed(&self) -> &[Address] {
+        unimplemented!()    
+    }
+
+    fn used_gas(&self) -> Gas {
+        unimplemented!()    
+    }
+
+
+    fn fire(&mut self) -> Result<(), RequireError> { 
+        unimplemented!()    
+    }
+}
 
 pub trait BasicTypeEnumCompare {
     fn is_int_t(self) -> bool;
