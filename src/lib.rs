@@ -103,9 +103,10 @@
 //! reductions.
 
 // TODO: Re-add "missing_docs" after evmjit is documented
+// TODO: Re-add "unused_variables" when ready
 #![deny(unused_import_braces, unused_imports,
         unused_comparisons, unused_must_use,
-        unused_variables, non_shorthand_field_patterns,
+        non_shorthand_field_patterns,
         unreachable_code)]
 
 #![cfg_attr(not(feature = "std"), no_std)]
