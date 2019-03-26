@@ -36,10 +36,7 @@ const G_TXDATAZERO: usize = 4;
 const G_TXDATANONZERO: usize = 68;
 const G_TRANSACTION: usize = 21000;
 
-static SYSTEM_ADDRESS: [u8; 20] = [
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff,
-];
+static SYSTEM_ADDRESS: [u8; 20] = [0xff; 20];
 
 macro_rules! system_address {
     () => {
@@ -625,11 +622,11 @@ impl<M: Memory, P: Patch + Clone> VM for TransactionVM<M, P> {
 
 #[cfg(test)]
 mod tests {
+    use crate::*;
     use bigint::*;
     use block::TransactionAction;
     use std::rc::Rc;
     use std::str::FromStr;
-    use *;
 
     #[test]
     fn system_transaction() {

@@ -8,7 +8,7 @@ use core::cmp::max;
 use std::cmp::max;
 
 use super::State;
-use {Instruction, Memory, Patch};
+use crate::{Instruction, Memory, Patch};
 
 const G_ZERO: usize = 0;
 const G_BASE: usize = 2;

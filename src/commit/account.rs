@@ -8,7 +8,6 @@ use alloc::{collections::btree_map as map, collections::BTreeMap as Map, collect
 use bigint::{Address, M256, U256};
 #[cfg(not(feature = "std"))]
 use core::cell::RefCell;
-use patch::AccountPatch;
 #[cfg(feature = "std")]
 use std::cell::RefCell;
 #[cfg(feature = "std")]
@@ -19,7 +18,10 @@ use alloc::rc::Rc;
 #[cfg(feature = "std")]
 use std::rc::Rc;
 
-use errors::{CommitError, RequireError};
+use crate::{
+    errors::{CommitError, RequireError},
+    AccountPatch,
+};
 
 /// Internal representation of an account storage. It will return a
 /// `RequireError` if trying to access non-existing storage.
@@ -547,15 +549,10 @@ impl<A: AccountPatch> AccountState<A> {
                 } => return changing_storage.write(index, value),
                 AccountChange::Create { ref mut storage, .. } => return storage.write(index, value),
                 val => {
-                    let is_nonexist;
-                    match val {
-                        AccountChange::Nonexist(_) => {
-                            is_nonexist = true;
-                        }
-                        _ => {
-                            is_nonexist = false;
-                        }
-                    }
+                    let is_nonexist = match val {
+                        AccountChange::Nonexist(_) => true,
+                        _ => false,
+                    };
                     if is_nonexist {
                         let mut storage = Storage::new(address, false);
                         let ret = storage.write(index, value);
@@ -727,15 +724,10 @@ impl<A: AccountPatch> AccountState<A> {
                 Ok(())
             }
             Some(val) => {
-                let is_nonexist;
-                match val {
-                    AccountChange::Nonexist(_) => {
-                        is_nonexist = true;
-                    }
-                    _ => {
-                        is_nonexist = false;
-                    }
-                }
+                let is_nonexist = match val {
+                    AccountChange::Nonexist(_) => true,
+                    _ => false,
+                };
                 if is_nonexist {
                     *val = AccountChange::Create {
                         nonce: new_nonce,

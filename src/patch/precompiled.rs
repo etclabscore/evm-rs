@@ -13,7 +13,6 @@ use core::cmp::min;
 use std::cmp::min;
 
 use digest::{Digest, FixedOutput};
-use errors::{OnChainError, RuntimeError};
 use ripemd160::Ripemd160;
 use sha2::Sha256;
 #[cfg(any(feature = "rust-secp256k1", feature = "c-secp256k1"))]
@@ -23,6 +22,8 @@ use sha3::Keccak256;
 use secp256k1::{recover, Error, Message, RecoveryId, Signature};
 #[cfg(feature = "c-secp256k1")]
 use secp256k1::{Error, Message, RecoverableSignature, RecoveryId, SECP256K1};
+
+use crate::errors::{OnChainError, RuntimeError};
 
 /// Represent a precompiled contract.
 pub trait Precompiled: Sync {

@@ -2,9 +2,11 @@
 
 use bigint::{Gas, M256, U256};
 
-use errors::{EvalOnChainError, NotSupportedError, OnChainError};
-use eval::{ControlCheck, Runtime, State};
-use {Instruction, Memory, Patch};
+use crate::{
+    errors::{EvalOnChainError, NotSupportedError, OnChainError},
+    eval::{ControlCheck, Runtime, State},
+    Instruction, Memory, Patch,
+};
 
 use super::util::check_range;
 
@@ -341,6 +343,7 @@ pub fn check_opcode<M: Memory, P: Patch>(
             state.stack.check_pop_push(0, 1)?;
             Ok(None)
         }
+
         Instruction::EXTCODESIZE => {
             state.stack.check_pop_push(1, 1)?;
             state.account_state.require_code(state.stack.peek(0).unwrap().into())?;

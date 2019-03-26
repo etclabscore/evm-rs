@@ -11,10 +11,12 @@ use std::rc::Rc;
 use super::cost::code_deposit_gas;
 use super::util::copy_into_memory_apply;
 use super::{GasUsage, Machine, MachineStatus};
+use crate::{
+    commit::AccountState,
+    errors::{OnChainError, RequireError},
+    AccountPatch, Memory, Patch,
+};
 use bigint::{Address, Gas, M256, U256};
-use commit::AccountState;
-use errors::{OnChainError, RequireError};
-use {AccountPatch, Memory, Patch};
 
 /// # Lifecycle of a Machine
 ///

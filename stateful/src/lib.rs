@@ -8,13 +8,6 @@
     unreachable_code
 )]
 
-extern crate bigint;
-extern crate block;
-extern crate evm;
-extern crate rlp;
-extern crate sha3;
-extern crate trie;
-
 use bigint::{Address, H256, M256, U256};
 use block::{Account, Transaction};
 use evm::errors::{PreExecutionError, RequireError};

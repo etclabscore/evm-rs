@@ -1,13 +1,3 @@
-#[macro_use]
-extern crate clap;
-extern crate bigint;
-extern crate block;
-extern crate evm;
-extern crate evm_network_classic;
-extern crate gethrpc;
-extern crate hexutil;
-extern crate serde_json;
-
 use std::collections::HashMap;
 use std::fs::File;
 use std::rc::Rc;
@@ -280,6 +270,8 @@ fn test_blocks<T: GethRPCClient, P: Patch + Default + Clone>(client: &mut T, num
         test_block::<_, P>(client, number);
     }
 }
+
+use clap::clap_app;
 
 fn main() {
     let matches = clap_app!(regtests =>

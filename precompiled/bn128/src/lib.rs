@@ -1,7 +1,3 @@
-extern crate bigint;
-extern crate bn;
-extern crate evm;
-
 use bigint::{Gas, U256};
 use std::rc::Rc;
 

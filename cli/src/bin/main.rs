@@ -1,18 +1,14 @@
-#[macro_use]
-extern crate clap;
-extern crate bigint;
-extern crate evm;
-extern crate evm_network_classic;
-extern crate flame;
-extern crate gethrpc;
-extern crate hexutil;
-extern crate serde_json;
-
 mod profiler;
+use self::profiler::Profiler;
 
 use std::fs::File;
+use std::ops::DerefMut;
+use std::rc::Rc;
+use std::str::FromStr;
 
 use bigint::{Address, Gas, H256, M256, U256};
+use hexutil::read_hex;
+
 use evm::{
     AccountCommitment, Context, HeaderParams, RequireError, SeqContextVM, SeqTransactionVM, TransactionAction,
     VMStatus, ValidTransaction, VM,
@@ -22,11 +18,6 @@ use evm_network_classic::{
     MainnetHomesteadPatch,
 };
 use gethrpc::{GethRPCClient, NormalGethRPCClient, RPCBlock};
-use hexutil::read_hex;
-use profiler::Profiler;
-use std::ops::DerefMut;
-use std::rc::Rc;
-use std::str::FromStr;
 
 fn from_rpc_block(block: &RPCBlock) -> HeaderParams {
     HeaderParams {
@@ -154,6 +145,8 @@ fn handle_fire_with_rpc<T: GethRPCClient>(client: &mut T, vm: &mut VM, block_num
         }
     }
 }
+
+use clap::clap_app;
 
 fn main() {
     let matches = clap_app!(evm =>

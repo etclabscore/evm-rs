@@ -1,7 +1,7 @@
 use bigint::{Address, Gas, H256, M256, U256};
 use evm::{AccountChange, AccountCommitment, Context, HeaderParams, Log};
 use hexutil::*;
-use read_u256;
+
 use rlp;
 use serde_json::Value;
 use sha3::Digest;
@@ -9,6 +9,8 @@ use sha3::Keccak256;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::str::FromStr;
+
+use crate::read_u256;
 
 pub struct JSONBlock {
     codes: HashMap<Address, Vec<u8>>,

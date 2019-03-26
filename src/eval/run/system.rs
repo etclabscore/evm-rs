@@ -8,11 +8,12 @@ use alloc::rc::Rc;
 #[cfg(feature = "std")]
 use std::rc::Rc;
 
-use super::{Control, State};
 use bigint::{Address, Gas, H256, M256, U256};
 use block_core::TransactionAction;
-use eval::util::{copy_from_memory, l64};
-use {Log, Memory, Patch, ValidTransaction};
+
+use super::{Control, State};
+use crate::eval::util::{copy_from_memory, l64};
+use crate::{Log, Memory, Patch, ValidTransaction};
 
 #[cfg(not(feature = "std"))]
 use core::cmp::min;

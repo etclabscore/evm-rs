@@ -1,3 +1,4 @@
+#![cfg_attr(feature = "bench", feature(test))]
 extern crate bigint;
 extern crate criterion;
 extern crate env_logger;
@@ -83,7 +84,7 @@ pub fn create_machine<P: Patch + Clone>(patch: P, v: &Value, block: &JSONBlock) 
 // TODO: consider refactoring
 #[cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity))]
 #[cfg_attr(feature = "cargo-clippy", allow(collapsible_if))]
-pub fn test_machine<P: Patch + Clone>(
+pub fn test_machine<P: Patch>(
     v: &Value,
     machine: &SeqContextVM<P>,
     block: &JSONBlock,

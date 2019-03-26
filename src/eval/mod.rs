@@ -20,6 +20,7 @@ use super::errors::{CommitError, EvalOnChainError, NotSupportedError, OnChainErr
 use super::pc::Instruction;
 use super::{AccountCommitment, Context, HeaderParams, Log, Memory, Opcode, PCMut, Patch, Stack, Valids, PC};
 use bigint::{Address, Gas, M256, U256};
+use log::{debug, trace};
 
 use self::check::{check_opcode, check_static, check_support, extra_check_opcode};
 use self::cost::{gas_cost, gas_refund, gas_stipend, memory_cost, memory_gas, AddRefund};
@@ -157,7 +158,6 @@ impl Runtime {
         Runtime {
             block,
             blockhash_state,
-
             context_history_hooks: Vec::new(),
         }
     }
@@ -534,6 +534,7 @@ impl<M: Memory, P: Patch> Machine<M, P> {
                 )
                 .jump(dest.as_usize())
                 .unwrap();
+
                 Ok(())
             }
             Some(Control::InvokeCall(context, (from, len))) => {

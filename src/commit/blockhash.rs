@@ -6,7 +6,7 @@ use bigint::{H256, U256};
 #[cfg(feature = "std")]
 use std::collections::HashMap as Map;
 
-use errors::{CommitError, RequireError};
+use crate::errors::{CommitError, RequireError};
 
 #[derive(Debug, Clone)]
 /// A struct that manages the current blockhash state for one EVM.

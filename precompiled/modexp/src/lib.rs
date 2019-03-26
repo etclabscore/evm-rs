@@ -1,10 +1,3 @@
-extern crate bigint;
-extern crate evm;
-extern crate num_bigint;
-
-#[cfg(test)]
-extern crate hexutil;
-
 use bigint::{Gas, U256};
 use std::rc::Rc;
 
@@ -67,10 +60,8 @@ impl Precompiled for ModexpPrecompiled {
         let modulus_length = U256::from(&data[64..96]);
 
         let op1 = mult_complexity(cmp::max(modulus_length, base_length))?;
-        let op2 = cmp::max(
-            adjusted_exponent_length(exponent_length, base_length, &data),
-            U256::from(1),
-        ) / U256::from(20);
+        let ael = adjusted_exponent_length(exponent_length, base_length, &data);
+        let op2 = cmp::max(ael, U256::from(1)) / U256::from(20);
         let (r, o) = op1.overflowing_mul(op2);
         if o {
             return Err(RuntimeError::OnChain(OnChainError::EmptyGas));
@@ -134,8 +125,8 @@ impl Precompiled for ModexpPrecompiled {
 
 #[cfg(test)]
 mod tests {
+    use crate::*;
     use hexutil::*;
-    use *;
 
     #[test]
     fn spec_test1() {

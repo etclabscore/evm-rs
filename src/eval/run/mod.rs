@@ -56,12 +56,13 @@ use std::rc::Rc;
 
 use super::util::{copy_from_memory, copy_into_memory};
 use super::{Control, Runtime, State};
+use crate::{Instruction, Memory, Patch};
+
 use bigint::{Address, Gas, M256, MI256, U256};
 #[cfg(not(feature = "std"))]
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Sub};
 #[cfg(feature = "std")]
 use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Sub};
-use {Instruction, Memory, Patch};
 
 #[allow(unused_variables)]
 /// Run an instruction.

@@ -3,8 +3,7 @@
 use bigint::{M256, U512};
 
 use super::State;
-use patch::Patch;
-use Memory;
+use crate::{Memory, Patch};
 
 pub fn addmod<M: Memory, P: Patch>(state: &mut State<M, P>) {
     pop!(state, op1: U512, op2: U512, op3: U512);

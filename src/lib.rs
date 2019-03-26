@@ -43,9 +43,6 @@
 //! the beginning of the program.
 //!
 //! ```
-//! extern crate bigint;
-//! extern crate evm;
-//!
 //! use evm::{EmbeddedPatch, VMTestPatch,
 //!                 HeaderParams, ValidTransaction, TransactionAction,
 //!                 VM, SeqTransactionVM};
@@ -71,11 +68,17 @@
 //!     gas_limit: Gas::zero()
 //!   };
 //!   let vm = if block_number < 500 {
-//!     SeqTransactionVM::<VMTestPatch>::new(
-//!       transaction, header);
+//!     SeqTransactionVM::new(
+//!       VMTestPatch::default(),
+//!       transaction,
+//!       header
+//!     );
 //!   } else {
-//!     SeqTransactionVM::<EmbeddedPatch>::new(
-//!       transaction, header);
+//!     SeqTransactionVM::new(
+//!       EmbeddedPatch::default(),
+//!       transaction,
+//!       header
+//!     );
 //!   };
 //! }
 //! ```
@@ -115,20 +118,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(not(feature = "std"), feature(alloc))]
 
+// extern crates below are left in code on purpose even though it's discouraged in Edition 2018
+// in the event of incorrect feature setting, the error will pop up on
+// extern crate statement in lib.rs, which is easier to debug
 #[cfg(not(feature = "std"))]
 extern crate alloc;
-
-extern crate bigint;
-extern crate block_core;
-extern crate digest;
-extern crate ripemd160;
-extern crate rlp;
-extern crate sha2;
-extern crate sha3;
-extern crate smallvec;
-
-#[macro_use]
-extern crate log;
 
 #[cfg(feature = "c-secp256k1")]
 extern crate secp256k1;
@@ -138,10 +132,6 @@ extern crate secp256k1;
 
 #[cfg(feature = "std")]
 extern crate block;
-#[cfg(test)]
-extern crate hexutil;
-#[cfg(feature = "precompiled-modexp")]
-extern crate num_bigint;
 
 mod commit;
 pub mod errors;
@@ -154,16 +144,16 @@ mod stack;
 mod transaction;
 mod util;
 
-pub use self::commit::{AccountChange, AccountCommitment, AccountState, BlockhashState, Storage};
-pub use self::errors::{CommitError, NotSupportedError, OnChainError, PreExecutionError, RequireError};
-pub use self::eval::{Machine, MachineStatus, Runtime, State};
-pub use self::memory::{Memory, SeqMemory};
-pub use self::params::*;
-pub use self::patch::*;
-pub use self::pc::{Instruction, PCMut, Valids, PC};
-pub use self::stack::Stack;
-pub use self::transaction::{TransactionVM, UntrustedTransaction, ValidTransaction};
-pub use self::util::opcode::Opcode;
+pub use crate::commit::{AccountChange, AccountCommitment, AccountState, BlockhashState, Storage};
+pub use crate::errors::{CommitError, NotSupportedError, OnChainError, PreExecutionError, RequireError};
+pub use crate::eval::{Machine, MachineStatus, Runtime, State};
+pub use crate::memory::{Memory, SeqMemory};
+pub use crate::params::*;
+pub use crate::patch::*;
+pub use crate::pc::{Instruction, PCMut, Valids, PC};
+pub use crate::stack::Stack;
+pub use crate::transaction::{TransactionVM, UntrustedTransaction, ValidTransaction};
+pub use crate::util::opcode::Opcode;
 pub use block_core::TransactionAction;
 
 #[cfg(not(feature = "std"))]
@@ -180,6 +170,8 @@ use core::cmp::min;
 use std::cmp::min;
 #[cfg(feature = "std")]
 use std::collections::{hash_map as map, HashSet as Set};
+
+use log::debug;
 
 #[derive(Debug, Clone, PartialEq)]
 /// VM Status

@@ -8,10 +8,10 @@ use bigint::M256;
 use core::cmp::min;
 #[cfg(feature = "std")]
 use std::cmp::min;
-use util::opcode::Opcode;
 
 use super::errors::OnChainError;
 use super::Patch;
+use crate::util::opcode::Opcode;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[allow(missing_docs)]
@@ -327,7 +327,13 @@ macro_rules! impl_pc {
                     Opcode::LOG(v) => Instruction::LOG(v),
 
                     Opcode::CREATE => Instruction::CREATE,
-                    Opcode::CREATE2 => Instruction::CREATE2,
+                    Opcode::CREATE2 => {
+                        if self.patch.has_create2() {
+                            Instruction::CREATE2
+                        } else {
+                            return Err(OnChainError::InvalidOpcode);
+                        }
+                    }
                     Opcode::CALL => Instruction::CALL,
                     Opcode::CALLCODE => Instruction::CALLCODE,
                     Opcode::RETURN => Instruction::RETURN,

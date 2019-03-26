@@ -3,9 +3,8 @@
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
+use crate::{errors::OnChainError, Memory};
 use bigint::{Gas, M256, U256};
-use errors::OnChainError;
-use Memory;
 
 #[cfg(not(feature = "std"))]
 use core::cmp::min;
