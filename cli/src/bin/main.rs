@@ -12,14 +12,18 @@ mod profiler;
 
 use std::fs::File;
 
-use profiler::Profiler;
-use bigint::{Gas, Address, U256, M256, H256};
-use hexutil::read_hex;
-use evm::{HeaderParams, Context, SeqTransactionVM, ValidTransaction, VM,
-                AccountCommitment, RequireError, TransactionAction, VMStatus,
-                SeqContextVM};
-use evm_network_classic::{MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch, MainnetByzantiumPatch, MainnetConstantinoplePatch};
+use bigint::{Address, Gas, H256, M256, U256};
+use evm::{
+    AccountCommitment, Context, HeaderParams, RequireError, SeqContextVM, SeqTransactionVM, TransactionAction,
+    VMStatus, ValidTransaction, VM,
+};
+use evm_network_classic::{
+    MainnetByzantiumPatch, MainnetConstantinoplePatch, MainnetEIP150Patch, MainnetEIP160Patch, MainnetFrontierPatch,
+    MainnetHomesteadPatch,
+};
 use gethrpc::{GethRPCClient, NormalGethRPCClient, RPCBlock};
+use hexutil::read_hex;
+use profiler::Profiler;
 use std::ops::DerefMut;
 use std::rc::Rc;
 use std::str::FromStr;
@@ -38,8 +42,7 @@ fn handle_step_without_rpc(vm: &mut VM) {
     match vm.step() {
         Ok(()) => {}
         Err(RequireError::Account(address)) => {
-            vm.commit_account(AccountCommitment::Nonexist(address))
-                .unwrap();
+            vm.commit_account(AccountCommitment::Nonexist(address)).unwrap();
         }
         Err(RequireError::AccountStorage(address, index)) => {
             vm.commit_account(AccountCommitment::Storage {
@@ -50,8 +53,7 @@ fn handle_step_without_rpc(vm: &mut VM) {
             .unwrap();
         }
         Err(RequireError::AccountCode(address)) => {
-            vm.commit_account(AccountCommitment::Nonexist(address))
-                .unwrap();
+            vm.commit_account(AccountCommitment::Nonexist(address)).unwrap();
         }
         Err(RequireError::Blockhash(number)) => {
             vm.commit_blockhash(number, H256::default()).unwrap();
@@ -76,8 +78,7 @@ fn handle_fire_without_rpc(vm: &mut VM) {
         match vm.fire() {
             Ok(()) => break,
             Err(RequireError::Account(address)) => {
-                vm.commit_account(AccountCommitment::Nonexist(address))
-                    .unwrap();
+                vm.commit_account(AccountCommitment::Nonexist(address)).unwrap();
             }
             Err(RequireError::AccountStorage(address, index)) => {
                 vm.commit_account(AccountCommitment::Storage {
@@ -88,8 +89,7 @@ fn handle_fire_without_rpc(vm: &mut VM) {
                 .unwrap();
             }
             Err(RequireError::AccountCode(address)) => {
-                vm.commit_account(AccountCommitment::Nonexist(address))
-                    .unwrap();
+                vm.commit_account(AccountCommitment::Nonexist(address)).unwrap();
             }
             Err(RequireError::Blockhash(number)) => {
                 vm.commit_blockhash(number, H256::default()).unwrap();
@@ -103,21 +103,15 @@ fn handle_fire_with_rpc<T: GethRPCClient>(client: &mut T, vm: &mut VM, block_num
         match vm.fire() {
             Ok(()) => break,
             Err(RequireError::Account(address)) => {
-                let nonce = U256::from_str(
-                    &client.get_transaction_count(&format!("0x{:x}", address), &block_number),
-                )
-                .unwrap();
-                let balance =
-                    U256::from_str(&client.get_balance(&format!("0x{:x}", address), &block_number))
-                        .unwrap();
-                let code =
-                    read_hex(&client.get_code(&format!("0x{:x}", address), &block_number)).unwrap();
+                let nonce =
+                    U256::from_str(&client.get_transaction_count(&format!("0x{:x}", address), &block_number)).unwrap();
+                let balance = U256::from_str(&client.get_balance(&format!("0x{:x}", address), &block_number)).unwrap();
+                let code = read_hex(&client.get_code(&format!("0x{:x}", address), &block_number)).unwrap();
                 if !client.account_exist(
                     &format!("0x{:x}", address),
                     U256::from_str(&block_number).unwrap().as_usize(),
                 ) {
-                    vm.commit_account(AccountCommitment::Nonexist(address))
-                        .unwrap();
+                    vm.commit_account(AccountCommitment::Nonexist(address)).unwrap();
                 } else {
                     vm.commit_account(AccountCommitment::Full {
                         nonce,
@@ -135,16 +129,11 @@ fn handle_fire_with_rpc<T: GethRPCClient>(client: &mut T, vm: &mut VM, block_num
                     &block_number,
                 ))
                 .unwrap();
-                vm.commit_account(AccountCommitment::Storage {
-                    address,
-                    index,
-                    value,
-                })
-                .unwrap();
+                vm.commit_account(AccountCommitment::Storage { address, index, value })
+                    .unwrap();
             }
             Err(RequireError::AccountCode(address)) => {
-                let code =
-                    read_hex(&client.get_code(&format!("0x{:x}", address), &block_number)).unwrap();
+                let code = read_hex(&client.get_code(&format!("0x{:x}", address), &block_number)).unwrap();
                 vm.commit_account(AccountCommitment::Code {
                     address,
                     code: Rc::new(code),
@@ -209,11 +198,7 @@ fn main() {
 
     let block = if matches.is_present("RPC") {
         let mut client = NormalGethRPCClient::new(matches.value_of("RPC").unwrap());
-        from_rpc_block(
-            &client
-                .get_block_by_number(block_number)
-                .expect("block not found"),
-        )
+        from_rpc_block(&client.get_block_by_number(block_number).expect("block not found"))
     } else {
         HeaderParams {
             beneficiary: Address::default(),
@@ -246,36 +231,14 @@ fn main() {
         };
 
         match matches.value_of("PATCH") {
-            Some("frontier") => Box::new(SeqContextVM::new(
-                MainnetFrontierPatch::default(),
-                context,
-                block,
-            )),
-            Some("homestead") => Box::new(SeqContextVM::new(
-                MainnetHomesteadPatch::default(),
-                context,
-                block,
-            )),
-            Some("eip150") => Box::new(SeqContextVM::new(
-                MainnetEIP150Patch::default(),
-                context,
-                block,
-            )),
-            Some("eip160") => Box::new(SeqContextVM::new(
-                MainnetEIP160Patch::default(),
-                context,
-                block,
-            )),
-            Some("byzantium") => Box::new(SeqContextVM::new(
-                MainnetByzantiumPatch::default(),
-                context,
-                block,
-            )),
-            Some("constantinople") => Box::new(SeqContextVM::new(
-                MainnetConstantinoplePatch::default(),
-                context,
-                block,
-            )),
+            Some("frontier") => Box::new(SeqContextVM::new(MainnetFrontierPatch::default(), context, block)),
+            Some("homestead") => Box::new(SeqContextVM::new(MainnetHomesteadPatch::default(), context, block)),
+            Some("eip150") => Box::new(SeqContextVM::new(MainnetEIP150Patch::default(), context, block)),
+            Some("eip160") => Box::new(SeqContextVM::new(MainnetEIP160Patch::default(), context, block)),
+            Some("byzantium") => Box::new(SeqContextVM::new(MainnetByzantiumPatch::default(), context, block)),
+            Some("constantinople") => {
+                Box::new(SeqContextVM::new(MainnetConstantinoplePatch::default(), context, block))
+            }
             _ => panic!("Unsupported patch."),
         }
     } else {
@@ -286,10 +249,9 @@ fn main() {
             gas_price,
             input: Rc::new(data),
             nonce: match client {
-                Some(ref mut client) => U256::from_str(
-                    &client.get_transaction_count(&format!("0x{:x}", caller), &block_number),
-                )
-                .unwrap(),
+                Some(ref mut client) => {
+                    U256::from_str(&client.get_transaction_count(&format!("0x{:x}", caller), &block_number)).unwrap()
+                }
                 None => U256::zero(),
             },
             action: if is_create {
@@ -310,16 +272,8 @@ fn main() {
                 transaction,
                 block,
             )),
-            Some("eip150") => Box::new(SeqTransactionVM::new(
-                MainnetEIP150Patch::default(),
-                transaction,
-                block,
-            )),
-            Some("eip160") => Box::new(SeqTransactionVM::new(
-                MainnetEIP160Patch::default(),
-                transaction,
-                block,
-            )),
+            Some("eip150") => Box::new(SeqTransactionVM::new(MainnetEIP150Patch::default(), transaction, block)),
+            Some("eip160") => Box::new(SeqTransactionVM::new(MainnetEIP160Patch::default(), transaction, block)),
             Some("byzantium") => Box::new(SeqTransactionVM::new(
                 MainnetByzantiumPatch::default(),
                 transaction,
@@ -336,10 +290,7 @@ fn main() {
             if matches.is_present("PROFILE") {
                 profile_fire_without_rpc(vm.deref_mut());
                 if matches.is_present("PROFILE_DUMP") {
-                    flame::dump_html(
-                        &mut File::create(matches.value_of("PROFILE_DUMP").unwrap()).unwrap(),
-                    )
-                    .unwrap();
+                    flame::dump_html(&mut File::create(matches.value_of("PROFILE_DUMP").unwrap()).unwrap()).unwrap();
                 }
                 let mut profiler = Profiler::default();
                 for span in flame::spans() {

@@ -1,10 +1,10 @@
 //! Bitwise instructions
 
-use bigint::{M256, MI256, Sign};
+use bigint::{Sign, M256, MI256};
 
-use ::Memory;
 use super::State;
 use patch::Patch;
+use Memory;
 
 pub fn iszero<M: Memory, P: Patch>(state: &mut State<M, P>) {
     pop!(state, op1);
@@ -73,13 +73,9 @@ pub fn sar<M: Memory, P: Patch>(state: &mut State<M, P>) {
         let MI256(sign, _) = value;
         match sign {
             // value is 0 or >=1, pushing 0
-            Sign::Plus | Sign::NoSign => {
-                M256::zero()
-            },
+            Sign::Plus | Sign::NoSign => M256::zero(),
             // value is <0, pushing -1
-            Sign::Minus => {
-                MI256(Sign::Minus, M256::one()).into()
-            }
+            Sign::Minus => MI256(Sign::Minus, M256::one()).into(),
         }
     } else {
         let shift: u64 = shift.into();
@@ -88,7 +84,7 @@ pub fn sar<M: Memory, P: Patch>(state: &mut State<M, P>) {
             Sign::Plus | Sign::NoSign => {
                 let shifted = value.1 >> shift as usize;
                 shifted
-            },
+            }
             Sign::Minus => {
                 let shifted = ((value.1 - M256::one()) >> shift as usize) + M256::one();
                 MI256(Sign::Minus, shifted).into()

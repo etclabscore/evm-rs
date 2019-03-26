@@ -3,17 +3,21 @@
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
-#[cfg(not(feature = "std"))] use alloc::rc::Rc;
-#[cfg(feature = "std")] use std::rc::Rc;
+#[cfg(not(feature = "std"))]
+use alloc::rc::Rc;
+#[cfg(feature = "std")]
+use std::rc::Rc;
 
-use bigint::{U256, M256, H256, Address, Gas};
-use ::{Memory, Log, ValidTransaction, Patch};
-use eval::util::{l64, copy_from_memory};
-use block_core::TransactionAction;
 use super::{Control, State};
+use bigint::{Address, Gas, H256, M256, U256};
+use block_core::TransactionAction;
+use eval::util::{copy_from_memory, l64};
+use {Log, Memory, Patch, ValidTransaction};
 
-#[cfg(feature = "std")] use std::cmp::min;
-#[cfg(not(feature = "std"))] use core::cmp::min;
+#[cfg(not(feature = "std"))]
+use core::cmp::min;
+#[cfg(feature = "std")]
+use std::cmp::min;
 
 use sha3::{Digest, Keccak256};
 
@@ -57,7 +61,7 @@ macro_rules! try_callstack_limit {
             push!($state, M256::zero());
             return None;
         }
-    }
+    };
 }
 
 macro_rules! try_balance {
@@ -66,11 +70,15 @@ macro_rules! try_balance {
             push!($state, M256::zero());
             return None;
         }
-    }
+    };
 }
 
 pub fn create<M: Memory, P: Patch>(state: &mut State<M, P>, after_gas: Gas, is_create2: bool) -> Option<Control> {
-    let l64_after_gas = if state.patch.call_create_l64_after_gas() { l64(after_gas) } else { after_gas };
+    let l64_after_gas = if state.patch.call_create_l64_after_gas() {
+        l64(after_gas)
+    } else {
+        after_gas
+    };
 
     pop!(state, value: U256);
     pop!(state, init_start: U256, init_len: U256);
@@ -104,17 +112,31 @@ pub fn create<M: Memory, P: Patch>(state: &mut State<M, P>, after_gas: Gas, is_c
         }
     };
 
-    let context = transaction.into_context::<P>(
-        Gas::zero(), Some(state.context.origin), &mut state.account_state, true,
-        state.context.is_static,
-    ).unwrap();
+    let context = transaction
+        .into_context::<P>(
+            Gas::zero(),
+            Some(state.context.origin),
+            &mut state.account_state,
+            true,
+            state.context.is_static,
+        )
+        .unwrap();
 
     push!(state, context.address.into());
     Some(Control::InvokeCreate(context))
 }
 
-pub fn call<M: Memory, P: Patch>(state: &mut State<M, P>, stipend_gas: Gas, after_gas: Gas, as_self: bool) -> Option<Control> {
-    let l64_after_gas = if state.patch.call_create_l64_after_gas() { l64(after_gas) } else { after_gas };
+pub fn call<M: Memory, P: Patch>(
+    state: &mut State<M, P>,
+    stipend_gas: Gas,
+    after_gas: Gas,
+    as_self: bool,
+) -> Option<Control> {
+    let l64_after_gas = if state.patch.call_create_l64_after_gas() {
+        l64(after_gas)
+    } else {
+        after_gas
+    };
 
     pop!(state, gas: Gas, to: Address, value: U256);
     pop!(state, in_start: U256, in_len: U256, out_start: U256, out_len: U256);
@@ -134,10 +156,15 @@ pub fn call<M: Memory, P: Patch>(state: &mut State<M, P>, stipend_gas: Gas, afte
         nonce: state.account_state.nonce(state.context.address).unwrap(),
     };
 
-    let mut context = transaction.into_context::<P>(
-        Gas::zero(), Some(state.context.origin), &mut state.account_state, true,
-        state.context.is_static,
-    ).unwrap();
+    let mut context = transaction
+        .into_context::<P>(
+            Gas::zero(),
+            Some(state.context.origin),
+            &mut state.account_state,
+            true,
+            state.context.is_static,
+        )
+        .unwrap();
     if as_self {
         context.address = state.context.address;
     }
@@ -147,7 +174,11 @@ pub fn call<M: Memory, P: Patch>(state: &mut State<M, P>, stipend_gas: Gas, afte
 }
 
 pub fn static_call<M: Memory, P: Patch>(state: &mut State<M, P>, stipend_gas: Gas, after_gas: Gas) -> Option<Control> {
-    let l64_after_gas = if state.patch.call_create_l64_after_gas() { l64(after_gas) } else { after_gas };
+    let l64_after_gas = if state.patch.call_create_l64_after_gas() {
+        l64(after_gas)
+    } else {
+        after_gas
+    };
 
     pop!(state, gas: Gas, to: Address);
     pop!(state, in_start: U256, in_len: U256, out_start: U256, out_len: U256);
@@ -166,17 +197,26 @@ pub fn static_call<M: Memory, P: Patch>(state: &mut State<M, P>, stipend_gas: Ga
         nonce: state.account_state.nonce(state.context.address).unwrap(),
     };
 
-    let context = transaction.into_context::<P>(
-        Gas::zero(), Some(state.context.origin), &mut state.account_state, true,
-        true,
-    ).unwrap();
+    let context = transaction
+        .into_context::<P>(
+            Gas::zero(),
+            Some(state.context.origin),
+            &mut state.account_state,
+            true,
+            true,
+        )
+        .unwrap();
 
     push!(state, M256::from(1u64));
     Some(Control::InvokeCall(context, (out_start, out_len)))
 }
 
 pub fn delegate_call<M: Memory, P: Patch>(state: &mut State<M, P>, after_gas: Gas) -> Option<Control> {
-    let l64_after_gas = if state.patch.call_create_l64_after_gas() { l64(after_gas) } else { after_gas };
+    let l64_after_gas = if state.patch.call_create_l64_after_gas() {
+        l64(after_gas)
+    } else {
+        after_gas
+    };
 
     pop!(state, gas: Gas, to: Address);
     pop!(state, in_start: U256, in_len: U256, out_start: U256, out_len: U256);
@@ -195,10 +235,15 @@ pub fn delegate_call<M: Memory, P: Patch>(state: &mut State<M, P>, after_gas: Ga
         nonce: state.account_state.nonce(state.context.address).unwrap(),
     };
 
-    let mut context = transaction.into_context::<P>(
-        Gas::zero(), Some(state.context.origin), &mut state.account_state, true,
-        state.context.is_static,
-    ).unwrap();
+    let mut context = transaction
+        .into_context::<P>(
+            Gas::zero(),
+            Some(state.context.origin),
+            &mut state.account_state,
+            true,
+            state.context.is_static,
+        )
+        .unwrap();
     context.value = U256::zero();
     context.address = state.context.address;
 

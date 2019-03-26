@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate quote;
-extern crate syn;
 extern crate proc_macro;
 extern crate serde_json as json;
+extern crate syn;
 #[macro_use]
 extern crate failure;
 extern crate itertools;
@@ -11,17 +11,20 @@ mod attr;
 mod tests;
 mod util;
 
-use attr::{Config, extract_attrs};
+use attr::{extract_attrs, Config};
 use tests::read_tests_from_dir;
 use util::*;
 
 use failure::Error;
 use itertools::Itertools;
 
-use syn::Ident;
 use proc_macro::TokenStream;
+use syn::Ident;
 
-#[proc_macro_derive(JsonTests, attributes(directory, test_with, bench_with, criterion_config, skip, should_panic, patch))]
+#[proc_macro_derive(
+    JsonTests,
+    attributes(directory, test_with, bench_with, criterion_config, skip, should_panic, patch)
+)]
 pub fn json_tests(input: TokenStream) -> TokenStream {
     // Construct a string representation of the type definition
     let s = input.to_string();
@@ -32,7 +35,7 @@ pub fn json_tests(input: TokenStream) -> TokenStream {
     // Build the impl
     let gen = match impl_json_tests(&ast) {
         Ok(tokens) => tokens,
-        Err(err) => panic!("{}", err)
+        Err(err) => panic!("{}", err),
     };
 
     // Return the generated impl
@@ -79,17 +82,15 @@ fn impl_json_tests(ast: &syn::DeriveInput) -> Result<quote::Tokens, Error> {
             let data = json::to_string(&test.data)?;
 
             generate_test(&config, &name_ident, &data, &mut tokens);
-            generate_bench(&config, &name_ident, &data, &mut tokens)
-                .map(|mut ident| {
-                    // prepend dir submodule
-                    ident = Ident::from(format!("{}::{}", dir_mod_name, ident.as_ref()));
-                    // prepend file submodule
-                    if need_file_submodule {
-                        ident = Ident::from(format!("{}::{}", file_mod_name.as_ref().unwrap(), ident.as_ref()));
-                    }
-                    bench_idents.push(ident);
-                });
-
+            generate_bench(&config, &name_ident, &data, &mut tokens).map(|mut ident| {
+                // prepend dir submodule
+                ident = Ident::from(format!("{}::{}", dir_mod_name, ident.as_ref()));
+                // prepend file submodule
+                if need_file_submodule {
+                    ident = Ident::from(format!("{}::{}", file_mod_name.as_ref().unwrap(), ident.as_ref()));
+                }
+                bench_idents.push(ident);
+            });
         }
 
         if need_file_submodule {
@@ -112,9 +113,9 @@ fn generate_test(config: &Config, test_name: &Ident, data: &str, tokens: &mut qu
     let test_name_str = test_name.as_ref();
     let (patch_name, patch_path) = derive_patch(config);
 
-    tokens.append(quote!{#[test]});
+    tokens.append(quote! {#[test]});
     if config.should_panic {
-        tokens.append(quote!{#[should_panic]});
+        tokens.append(quote! {#[should_panic]});
     }
 
     tokens.append(quote! {
@@ -129,7 +130,7 @@ fn generate_test(config: &Config, test_name: &Ident, data: &str, tokens: &mut qu
 
 fn generate_bench(config: &Config, test_name: &Ident, data: &str, tokens: &mut quote::Tokens) -> Option<Ident> {
     if config.bench_with.is_none() {
-        return None
+        return None;
     }
 
     let bench = config.bench_with.as_ref().unwrap();
@@ -157,7 +158,8 @@ fn generate_criterion_macros(config: &Config, benches: &[Ident], tokens: &mut qu
     // Generate criterion macros
     if config.bench_with.is_some() {
         let benches = benches.iter().map(AsRef::as_ref).join(" , ");
-        let config = config.criterion_config
+        let config = config
+            .criterion_config
             .as_ref()
             .map(|cfg| cfg.path.clone())
             .unwrap_or_else(|| Ident::from("Criterion::default"));
@@ -176,9 +178,6 @@ fn derive_patch(config: &Config) -> (Ident, Ident) {
     if let Some(patch) = config.patch.as_ref() {
         (patch.name.clone(), patch.path.clone())
     } else {
-        (
-            Ident::from("VMTestPatch"),
-            Ident::from("evm::VMTestPatch")
-        )
+        (Ident::from("VMTestPatch"), Ident::from("evm::VMTestPatch"))
     }
 }

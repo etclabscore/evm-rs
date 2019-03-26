@@ -1,4 +1,4 @@
-use bigint::{Address, U256, Gas};
+use bigint::{Address, Gas, U256};
 use patch::{AccountPatch, Patch, Precompiled};
 use smallvec::SmallVec;
 
@@ -95,32 +95,74 @@ pub struct DynamicPatch {
 
 impl Patch for DynamicPatch {
     type Account = DynamicAccountPatch;
-    fn account_patch(&self) -> &Self::Account { &self.account_patch }
-    fn code_deposit_limit(&self) -> Option<usize> { self.code_deposit_limit }
-    fn callstack_limit(&self) -> usize { self.callstack_limit }
-    fn gas_extcode(&self) -> Gas { self.gas_extcode }
-    fn gas_balance(&self) -> Gas { self.gas_balance }
-    fn gas_sload(&self) -> Gas { self.gas_sload }
-    fn gas_suicide(&self) -> Gas { self.gas_suicide }
-    fn gas_suicide_new_account(&self) -> Gas { self.gas_suicide_new_account }
-    fn gas_call(&self) -> Gas { self.gas_call }
-    fn gas_expbyte(&self) -> Gas { self.gas_expbyte }
-    fn gas_transaction_create(&self) -> Gas { self.gas_transaction_create }
-    fn force_code_deposit(&self) -> bool { self.force_code_deposit }
-    fn has_delegate_call(&self) -> bool { self.has_delegate_call }
-    fn has_static_call(&self) -> bool { self.has_static_call }
-    fn has_revert(&self) -> bool { self.has_revert }
-    fn has_return_data(&self) -> bool { self.has_return_data }
-    fn has_bitwise_shift(&self) -> bool { self.has_bitwise_shift }
-    fn has_extcodehash(&self) -> bool { self.has_extcodehash }
-    fn has_reduced_sstore_gas_metering(&self) -> bool { self.has_reduced_sstore_gas_metering }
-    fn err_on_call_with_more_gas(&self) -> bool { self.err_on_call_with_more_gas }
-    fn call_create_l64_after_gas(&self) -> bool { self.call_create_l64_after_gas }
-    fn memory_limit(&self) -> usize { self.memory_limit }
+    fn account_patch(&self) -> &Self::Account {
+        &self.account_patch
+    }
+    fn code_deposit_limit(&self) -> Option<usize> {
+        self.code_deposit_limit
+    }
+    fn callstack_limit(&self) -> usize {
+        self.callstack_limit
+    }
+    fn gas_extcode(&self) -> Gas {
+        self.gas_extcode
+    }
+    fn gas_balance(&self) -> Gas {
+        self.gas_balance
+    }
+    fn gas_sload(&self) -> Gas {
+        self.gas_sload
+    }
+    fn gas_suicide(&self) -> Gas {
+        self.gas_suicide
+    }
+    fn gas_suicide_new_account(&self) -> Gas {
+        self.gas_suicide_new_account
+    }
+    fn gas_call(&self) -> Gas {
+        self.gas_call
+    }
+    fn gas_expbyte(&self) -> Gas {
+        self.gas_expbyte
+    }
+    fn gas_transaction_create(&self) -> Gas {
+        self.gas_transaction_create
+    }
+    fn force_code_deposit(&self) -> bool {
+        self.force_code_deposit
+    }
+    fn has_delegate_call(&self) -> bool {
+        self.has_delegate_call
+    }
+    fn has_static_call(&self) -> bool {
+        self.has_static_call
+    }
+    fn has_revert(&self) -> bool {
+        self.has_revert
+    }
+    fn has_return_data(&self) -> bool {
+        self.has_return_data
+    }
+    fn has_bitwise_shift(&self) -> bool {
+        self.has_bitwise_shift
+    }
+    fn has_extcodehash(&self) -> bool {
+        self.has_extcodehash
+    }
+    fn has_reduced_sstore_gas_metering(&self) -> bool {
+        self.has_reduced_sstore_gas_metering
+    }
+    fn err_on_call_with_more_gas(&self) -> bool {
+        self.err_on_call_with_more_gas
+    }
+    fn call_create_l64_after_gas(&self) -> bool {
+        self.call_create_l64_after_gas
+    }
+    fn memory_limit(&self) -> usize {
+        self.memory_limit
+    }
     fn is_precompiled_contract_enabled(&self, address: &Address) -> bool {
-        self.enabled_precompileds.iter()
-            .find(|&a| a == address)
-            .is_some()
+        self.enabled_precompileds.iter().find(|&a| a == address).is_some()
     }
     fn precompileds(&self) -> &[(Address, Option<&'static [u8]>, &'static dyn Precompiled)] {
         &self.precompileds

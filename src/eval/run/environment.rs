@@ -1,12 +1,11 @@
 //! Environment instructions
 
-use ::Memory;
 use super::State;
-use patch::Patch;
-use ::Address;
 use bigint::{H256, M256};
-use sha3::{Keccak256, Digest};
-
+use patch::Patch;
+use sha3::{Digest, Keccak256};
+use Address;
+use Memory;
 
 pub fn calldataload<M: Memory, P: Patch>(state: &mut State<M, P>) {
     pop!(state, index);
@@ -51,13 +50,21 @@ mod tests {
     fn extcodehash_empty_code() {
         let code = &[];
         let hash = extcodehash_impl(code);
-        assert_eq!(hash, H256::from("0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"));
+        assert_eq!(
+            hash,
+            H256::from("0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470")
+        );
     }
 
     #[test]
     fn extcodehash_hash() {
-        let code = &[0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x63, 0x6f, 0x64, 0x65, 0x68, 0x61, 0x73, 0x68];
+        let code = &[
+            0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x63, 0x6f, 0x64, 0x65, 0x68, 0x61, 0x73, 0x68,
+        ];
         let hash = extcodehash_impl(code);
-        assert_eq!(hash, H256::from("0x854a9ae2c913e6cef584ecaf9cbb52a38b59fb923a09beccee9d17c17d15cf7a"));
+        assert_eq!(
+            hash,
+            H256::from("0x854a9ae2c913e6cef584ecaf9cbb52a38b59fb923a09beccee9d17c17d15cf7a")
+        );
     }
 }

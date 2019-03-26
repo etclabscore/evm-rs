@@ -2,7 +2,7 @@
 
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
-use bigint::{U256, M256};
+use bigint::{M256, U256};
 
 use super::errors::NotSupportedError;
 
@@ -46,7 +46,9 @@ impl SeqMemory {
 
     /// Return true if current effective memory range is zero
     #[inline]
-    pub fn is_empty(&self) -> bool { self.len() == 0 }
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 }
 
 impl Memory for SeqMemory {
@@ -54,7 +56,7 @@ impl Memory for SeqMemory {
     fn new(memory_limit: usize) -> Self {
         SeqMemory {
             memory: Vec::new(),
-            memory_limit
+            memory_limit,
         }
     }
 

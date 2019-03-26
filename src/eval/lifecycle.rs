@@ -3,16 +3,18 @@
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
-#[cfg(not(feature = "std"))] use alloc::rc::Rc;
-#[cfg(feature = "std")] use std::rc::Rc;
+#[cfg(not(feature = "std"))]
+use alloc::rc::Rc;
+#[cfg(feature = "std")]
+use std::rc::Rc;
 
-use bigint::{U256, M256, Gas, Address};
-use errors::{RequireError, OnChainError};
-use commit::AccountState;
-use ::{Memory, Patch, AccountPatch};
-use super::{Machine, MachineStatus, GasUsage};
-use super::util::copy_into_memory_apply;
 use super::cost::code_deposit_gas;
+use super::util::copy_into_memory_apply;
+use super::{GasUsage, Machine, MachineStatus};
+use bigint::{Address, Gas, M256, U256};
+use commit::AccountState;
+use errors::{OnChainError, RequireError};
+use {AccountPatch, Memory, Patch};
 
 /// # Lifecycle of a Machine
 ///
@@ -35,10 +37,16 @@ impl<M: Memory, P: Patch> Machine<M, P> {
         self.state.account_state.require(self.state.context.address)?;
 
         if !self.state.context.is_system {
-            self.state.account_state.decrease_balance(self.state.context.caller, preclaimed_value);
-            self.state.account_state.decrease_balance(self.state.context.caller, self.state.context.value);
+            self.state
+                .account_state
+                .decrease_balance(self.state.context.caller, preclaimed_value);
+            self.state
+                .account_state
+                .decrease_balance(self.state.context.caller, self.state.context.value);
         }
-        self.state.account_state.increase_balance(self.state.context.address, self.state.context.value);
+        self.state
+            .account_state
+            .increase_balance(self.state.context.address, self.state.context.value);
 
         Ok(())
     }
@@ -51,9 +59,13 @@ impl<M: Memory, P: Patch> Machine<M, P> {
         self.state.account_state.require(self.state.context.address)?;
 
         if !self.state.context.is_system {
-            self.state.account_state.decrease_balance(self.state.context.caller, self.state.context.value);
+            self.state
+                .account_state
+                .decrease_balance(self.state.context.caller, self.state.context.value);
         }
-        self.state.account_state.increase_balance(self.state.context.address, self.state.context.value);
+        self.state
+            .account_state
+            .increase_balance(self.state.context.address, self.state.context.value);
 
         Ok(())
     }
@@ -66,10 +78,17 @@ impl<M: Memory, P: Patch> Machine<M, P> {
         self.state.account_state.require(self.state.context.address)?;
 
         if !self.state.context.is_system {
-            self.state.account_state.decrease_balance(self.state.context.caller, preclaimed_value);
-            self.state.account_state.decrease_balance(self.state.context.caller, self.state.context.value);
+            self.state
+                .account_state
+                .decrease_balance(self.state.context.caller, preclaimed_value);
+            self.state
+                .account_state
+                .decrease_balance(self.state.context.caller, self.state.context.value);
         }
-        self.state.account_state.create(self.state.context.address, self.state.context.value).unwrap();
+        self.state
+            .account_state
+            .create(self.state.context.address, self.state.context.value)
+            .unwrap();
 
         Ok(())
     }
@@ -82,9 +101,14 @@ impl<M: Memory, P: Patch> Machine<M, P> {
         self.state.account_state.require(self.state.context.address)?;
 
         if !self.state.context.is_system {
-            self.state.account_state.decrease_balance(self.state.context.caller, self.state.context.value);
+            self.state
+                .account_state
+                .decrease_balance(self.state.context.caller, self.state.context.value);
         }
-        self.state.account_state.create(self.state.context.address, self.state.context.value).unwrap();
+        self.state
+            .account_state
+            .create(self.state.context.address, self.state.context.value)
+            .unwrap();
 
         Ok(())
     }
@@ -97,7 +121,7 @@ impl<M: Memory, P: Patch> Machine<M, P> {
             _ => panic!(),
         }
 
-        if self.state.patch.code_deposit_limit().is_some()  {
+        if self.state.patch.code_deposit_limit().is_some() {
             if self.state.out.len() > self.state.patch.code_deposit_limit().unwrap() {
                 reset_error_hard!(self, OnChainError::EmptyGas);
                 return;
@@ -109,12 +133,15 @@ impl<M: Memory, P: Patch> Machine<M, P> {
             if !self.state.patch.force_code_deposit() {
                 reset_error_hard!(self, OnChainError::EmptyGas);
             } else {
-                self.state.account_state.code_deposit(self.state.context.address, Rc::new(Vec::new()));
+                self.state
+                    .account_state
+                    .code_deposit(self.state.context.address, Rc::new(Vec::new()));
             }
         } else {
             self.state.used_gas += deposit_cost;
-            self.state.account_state.code_deposit(self.state.context.address,
-                                                  self.state.out.clone());
+            self.state
+                .account_state
+                .code_deposit(self.state.context.address, self.state.out.clone());
         }
     }
 
@@ -123,7 +150,13 @@ impl<M: Memory, P: Patch> Machine<M, P> {
     ///
     /// ### Panic
     /// Requires caller of the transaction to be committed.
-    pub fn finalize_transaction(&mut self, beneficiary: Address, real_used_gas: Gas, preclaimed_value: U256, fresh_account_state: &AccountState<P::Account>) -> Result<(), RequireError> {
+    pub fn finalize_transaction(
+        &mut self,
+        beneficiary: Address,
+        real_used_gas: Gas,
+        preclaimed_value: U256,
+        fresh_account_state: &AccountState<P::Account>,
+    ) -> Result<(), RequireError> {
         self.state.account_state.require(self.state.context.address)?;
         if !self.state.patch.account_patch().allow_partial_change() {
             self.state.account_state.require(beneficiary)?;
@@ -135,22 +168,28 @@ impl<M: Memory, P: Patch> Machine<M, P> {
                 for address in &self.state.removed {
                     self.state.account_state.require(*address)?;
                 }
-            },
+            }
             MachineStatus::ExitedErr(_) => {
                 // If exited with error, reset all changes.
                 self.state.account_state = fresh_account_state.clone();
                 self.state.removed = Vec::new();
                 if !self.state.context.is_system {
-                    self.state.account_state.decrease_balance(self.state.context.caller, preclaimed_value);
+                    self.state
+                        .account_state
+                        .decrease_balance(self.state.context.caller, preclaimed_value);
                 }
-            },
+            }
             _ => panic!(),
         }
 
         let gas_dec = real_used_gas * self.state.context.gas_price;
         if !self.state.context.is_system {
-            self.state.account_state.increase_balance(self.state.context.caller, preclaimed_value);
-            self.state.account_state.decrease_balance(self.state.context.caller, gas_dec.into());
+            self.state
+                .account_state
+                .increase_balance(self.state.context.caller, preclaimed_value);
+            self.state
+                .account_state
+                .decrease_balance(self.state.context.caller, gas_dec.into());
 
             // Apply miner rewards
             self.state.account_state.increase_balance(beneficiary, gas_dec.into());
@@ -178,7 +217,7 @@ impl<M: Memory, P: Patch> Machine<M, P> {
             MachineStatus::ExitedErr(_) => {
                 self.state.account_state = fresh_account_state.clone();
                 self.state.removed = Vec::new();
-            },
+            }
             _ => panic!(),
         }
     }
@@ -200,10 +239,10 @@ impl<M: Memory, P: Patch> Machine<M, P> {
         match status {
             MachineStatus::InvokeCreate(_) => {
                 self.apply_create(sub);
-            },
+            }
             MachineStatus::InvokeCall(_, (out_start, out_len)) => {
                 self.apply_call(sub, out_start, out_len);
-            },
+            }
             _ => panic!(),
         }
     }
@@ -222,11 +261,11 @@ impl<M: Memory, P: Patch> Machine<M, P> {
             MachineStatus::ExitedOk => {
                 self.state.account_state = sub.state.account_state;
                 self.state.removed = sub.state.removed;
-            },
+            }
             MachineStatus::ExitedErr(_) => {
                 self.state.stack.pop().unwrap();
                 self.state.stack.push(M256::zero()).unwrap();
-            },
+            }
             _ => panic!(),
         }
     }
@@ -238,20 +277,19 @@ impl<M: Memory, P: Patch> Machine<M, P> {
         self.state.used_gas += sub_total_used_gas;
         self.state.refunded_gas = self.state.refunded_gas + sub.state.refunded_gas;
 
-        copy_into_memory_apply(&mut self.state.memory, sub.state.out.as_slice(),
-                               out_start, out_len);
+        copy_into_memory_apply(&mut self.state.memory, sub.state.out.as_slice(), out_start, out_len);
 
         match sub.status() {
             MachineStatus::ExitedOk => {
                 self.state.account_state = sub.state.account_state;
                 self.state.removed = sub.state.removed;
                 self.state.ret = Rc::new(Vec::new());
-            },
+            }
             MachineStatus::ExitedErr(_) => {
                 self.state.stack.pop().unwrap();
                 self.state.stack.push(M256::zero()).unwrap();
                 self.state.ret = sub.state.out.clone();
-            },
+            }
             _ => panic!(),
         }
     }

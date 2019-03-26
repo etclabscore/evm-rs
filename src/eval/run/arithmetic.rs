@@ -2,9 +2,9 @@
 
 use bigint::{M256, U512};
 
-use ::Memory;
 use super::State;
 use patch::Patch;
+use Memory;
 
 pub fn addmod<M: Memory, P: Patch>(state: &mut State<M, P>) {
     pop!(state, op1: U512, op2: U512, op3: U512);
@@ -27,7 +27,6 @@ pub fn mulmod<M: Memory, P: Patch>(state: &mut State<M, P>) {
         push!(state, v.into());
     }
 }
-
 
 pub fn exp<M: Memory, P: Patch>(state: &mut State<M, P>) {
     pop!(state, op1, op2);

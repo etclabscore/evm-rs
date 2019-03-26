@@ -12,10 +12,8 @@ use serde_json::Value;
 #[test]
 #[ignore]
 fn inputLimitsLight() {
-    let TESTS: Value = serde_json::from_str(include_str!(
-        "../res/files/vmInputLimitsLight/vmInputLimitsLight.json"
-    ))
-    .unwrap();
+    let TESTS: Value =
+        serde_json::from_str(include_str!("../res/files/vmInputLimitsLight/vmInputLimitsLight.json")).unwrap();
     for (name, value) in TESTS.as_object().unwrap().iter() {
         print!("\t{} ... ", name);
         match test_transaction(name, VMTestPatch::default(), value, true) {
@@ -28,10 +26,7 @@ fn inputLimitsLight() {
 #[test]
 #[ignore]
 fn inputLimits() {
-    let TESTS: Value = serde_json::from_str(include_str!(
-        "../res/files/vmInputLimits/vmInputLimits.json"
-    ))
-    .unwrap();
+    let TESTS: Value = serde_json::from_str(include_str!("../res/files/vmInputLimits/vmInputLimits.json")).unwrap();
     for (name, value) in TESTS.as_object().unwrap().iter() {
         print!("\t{} ... ", name);
         match test_transaction(name, VMTestPatch::default(), value, true) {

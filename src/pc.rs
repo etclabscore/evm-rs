@@ -4,26 +4,90 @@
 use alloc::vec::Vec;
 
 use bigint::M256;
+#[cfg(not(feature = "std"))]
+use core::cmp::min;
+#[cfg(feature = "std")]
+use std::cmp::min;
 use util::opcode::Opcode;
-#[cfg(feature = "std")] use std::cmp::min;
-#[cfg(not(feature = "std"))] use core::cmp::min;
 
-use super::Patch;
 use super::errors::OnChainError;
+use super::Patch;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[allow(missing_docs)]
 /// Instructions for the program counter. This is the same as `Opcode`
 /// except `PUSH`, which might take longer length.
 pub enum Instruction {
-    STOP, ADD, MUL, SUB, DIV, SDIV, MOD, SMOD, ADDMOD, MULMOD, EXP,
-    SIGNEXTEND, LT, GT, SLT, SGT, EQ, ISZERO, AND, OR, XOR, NOT, BYTE,
-    SHL, SHR, SAR, SHA3, ADDRESS, BALANCE, ORIGIN, CALLER, CALLVALUE, CALLDATALOAD,
-    CALLDATASIZE, CALLDATACOPY, CODESIZE, CODECOPY, GASPRICE,
-    EXTCODESIZE, EXTCODECOPY, EXTCODEHASH, BLOCKHASH, COINBASE, TIMESTAMP, NUMBER,
-    DIFFICULTY, GASLIMIT, POP, MLOAD, MSTORE, MSTORE8, SLOAD, SSTORE,
-    JUMP, JUMPI, PC, MSIZE, GAS, JUMPDEST, CREATE, CREATE2, CALL, CALLCODE,
-    RETURN, DELEGATECALL, SUICIDE, STATICCALL, REVERT, RETURNDATASIZE, RETURNDATACOPY,
+    STOP,
+    ADD,
+    MUL,
+    SUB,
+    DIV,
+    SDIV,
+    MOD,
+    SMOD,
+    ADDMOD,
+    MULMOD,
+    EXP,
+    SIGNEXTEND,
+    LT,
+    GT,
+    SLT,
+    SGT,
+    EQ,
+    ISZERO,
+    AND,
+    OR,
+    XOR,
+    NOT,
+    BYTE,
+    SHL,
+    SHR,
+    SAR,
+    SHA3,
+    ADDRESS,
+    BALANCE,
+    ORIGIN,
+    CALLER,
+    CALLVALUE,
+    CALLDATALOAD,
+    CALLDATASIZE,
+    CALLDATACOPY,
+    CODESIZE,
+    CODECOPY,
+    GASPRICE,
+    EXTCODESIZE,
+    EXTCODECOPY,
+    EXTCODEHASH,
+    BLOCKHASH,
+    COINBASE,
+    TIMESTAMP,
+    NUMBER,
+    DIFFICULTY,
+    GASLIMIT,
+    POP,
+    MLOAD,
+    MSTORE,
+    MSTORE8,
+    SLOAD,
+    SSTORE,
+    JUMP,
+    JUMPI,
+    PC,
+    MSIZE,
+    GAS,
+    JUMPDEST,
+    CREATE,
+    CREATE2,
+    CALL,
+    CALLCODE,
+    RETURN,
+    DELEGATECALL,
+    SUICIDE,
+    STATICCALL,
+    REVERT,
+    RETURNDATASIZE,
+    RETURNDATACOPY,
 
     PUSH(M256),
     DUP(usize),
@@ -47,10 +111,10 @@ impl Valids {
                 Opcode::JUMPDEST => {
                     valids[i] = true;
                     i += 1;
-                },
+                }
                 Opcode::PUSH(v) => {
                     i += v + 1;
-                },
+                }
                 _ => {
                     i += 1;
                 }
@@ -63,11 +127,15 @@ impl Valids {
     /// Get the length of the valid mapping. This is the same as the
     /// code bytes.
     #[inline]
-    pub fn len(&self) -> usize { self.0.len() }
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 
     /// Returns true if the valids list is empty
     #[inline]
-    pub fn is_empty(&self) -> bool { self.len() == 0 }
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 
     /// Returns `true` if the position is a valid jump destination. If
     /// not, returns `false`.
@@ -103,9 +171,7 @@ pub struct PCMut<'a, P: Patch> {
 macro_rules! impl_pc {
     ($t: tt) => {
         impl<'a, P: Patch> $t<'a, P> {
-            fn read_bytes(
-                &self, from_position: usize, byte_count: usize
-            ) -> Result<M256, OnChainError> {
+            fn read_bytes(&self, from_position: usize, byte_count: usize) -> Result<M256, OnChainError> {
                 if from_position > self.code.len() {
                     return Err(OnChainError::PCOverflow);
                 }
@@ -133,7 +199,7 @@ macro_rules! impl_pc {
                     match opcode {
                         Opcode::PUSH(v) => {
                             i += v + 1;
-                        },
+                        }
                         _ => {
                             i += 1;
                         }
@@ -198,21 +264,21 @@ macro_rules! impl_pc {
                         } else {
                             return Err(OnChainError::InvalidOpcode);
                         }
-                    },
+                    }
                     Opcode::SHR => {
                         if self.patch.has_bitwise_shift() {
                             Instruction::SHR
                         } else {
                             return Err(OnChainError::InvalidOpcode);
                         }
-                    },
+                    }
                     Opcode::SAR => {
                         if self.patch.has_bitwise_shift() {
                             Instruction::SAR
                         } else {
                             return Err(OnChainError::InvalidOpcode);
                         }
-                    },
+                    }
 
                     Opcode::SHA3 => Instruction::SHA3,
 
@@ -254,7 +320,7 @@ macro_rules! impl_pc {
                     Opcode::PUSH(v) => {
                         let param = self.read_bytes(*self.position + 1, v)?;
                         Instruction::PUSH(param)
-                    },
+                    }
 
                     Opcode::DUP(v) => Instruction::DUP(v),
                     Opcode::SWAP(v) => Instruction::SWAP(v),
@@ -271,44 +337,44 @@ macro_rules! impl_pc {
                         } else {
                             return Err(OnChainError::InvalidOpcode);
                         }
-                    },
+                    }
                     Opcode::STATICCALL => {
                         if self.patch.has_static_call() {
                             Instruction::STATICCALL
                         } else {
                             return Err(OnChainError::InvalidOpcode);
                         }
-                    },
+                    }
                     Opcode::REVERT => {
                         if self.patch.has_revert() {
                             Instruction::REVERT
                         } else {
                             return Err(OnChainError::InvalidOpcode);
                         }
-                    },
+                    }
                     Opcode::RETURNDATASIZE => {
                         if self.patch.has_return_data() {
                             Instruction::RETURNDATASIZE
                         } else {
                             return Err(OnChainError::InvalidOpcode);
                         }
-                    },
+                    }
                     Opcode::RETURNDATACOPY => {
                         if self.patch.has_return_data() {
                             Instruction::RETURNDATACOPY
                         } else {
                             return Err(OnChainError::InvalidOpcode);
                         }
-                    },
+                    }
 
                     Opcode::INVALID => {
                         return Err(OnChainError::InvalidOpcode);
-                    },
+                    }
                     Opcode::SUICIDE => Instruction::SUICIDE,
                 })
             }
         }
-    }
+    };
 }
 
 impl_pc!(PC);
@@ -318,7 +384,9 @@ impl<'a, P: Patch> PC<'a, P> {
     /// Create a new program counter from the given code.
     pub fn new(patch: &'a P, code: &'a [u8], valids: &'a Valids, position: &'a usize) -> Self {
         Self {
-            code, valids, position,
+            code,
+            valids,
+            position,
             patch,
         }
     }
@@ -328,7 +396,9 @@ impl<'a, P: Patch> PCMut<'a, P> {
     /// Create a new program counter from the given code.
     pub fn new(patch: &'a P, code: &'a [u8], valids: &'a Valids, position: &'a mut usize) -> Self {
         Self {
-            code, valids, position,
+            code,
+            valids,
+            position,
             patch,
         }
     }
@@ -355,10 +425,10 @@ impl<'a, P: Patch> PCMut<'a, P> {
         match opcode {
             Opcode::PUSH(v) => {
                 *self.position = min(*self.position + v + 1, self.code.len());
-            },
+            }
             _ => {
                 *self.position += 1;
-            },
+            }
         }
         Ok(result)
     }
