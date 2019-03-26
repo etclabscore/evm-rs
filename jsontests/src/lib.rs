@@ -22,7 +22,7 @@ use std::ops::Deref;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
-pub fn fire_with_block<P: Patch + Clone>(machine: &mut SeqContextVM<P>, block: &JSONBlock) {
+pub fn fire_with_block<P: Patch>(machine: &mut SeqContextVM<P>, block: &JSONBlock) {
     loop {
         match machine.fire() {
             Err(RequireError::Account(address)) => {
@@ -64,7 +64,7 @@ pub fn fire_with_block<P: Patch + Clone>(machine: &mut SeqContextVM<P>, block: &
     }
 }
 
-pub fn apply_to_block<P: Patch + Clone>(machine: &SeqContextVM<P>, block: &mut JSONBlock) {
+pub fn apply_to_block<P: Patch>(machine: &SeqContextVM<P>, block: &mut JSONBlock) {
     for account in machine.accounts() {
         let account = (*account).clone();
         block.apply_account(account);
@@ -75,10 +75,10 @@ pub fn apply_to_block<P: Patch + Clone>(machine: &SeqContextVM<P>, block: &mut J
     }
 }
 
-pub fn create_machine<P: Patch + Clone>(patch: P, v: &Value, block: &JSONBlock) -> SeqContextVM<P> {
+pub fn create_machine<'a, P: Patch>(patch: &'a P, v: &Value, block: &JSONBlock) -> SeqContextVM<'a, P> {
     let transaction = create_context(v);
 
-    SeqContextVM::<P>::new(patch, transaction, block.block_header())
+    SeqContextVM::new(patch, transaction, block.block_header())
 }
 
 // TODO: consider refactoring
@@ -290,13 +290,13 @@ fn is_ok(status: &VMStatus) -> bool {
     }
 }
 
-pub fn test_transaction<P: Patch + Clone>(_name: &str, patch: P, v: &Value, debug: bool) -> Result<bool, VMStatus> {
+pub fn test_transaction<P: Patch>(_name: &str, patch: P, v: &Value, debug: bool) -> Result<bool, VMStatus> {
     let _ = env_logger::try_init();
 
     let mut block = create_block(v);
     let history: Arc<Mutex<Vec<Context>>> = Arc::new(Mutex::new(Vec::new()));
     let history_closure = history.clone();
-    let mut machine = create_machine::<P>(patch, v, &block);
+    let mut machine = create_machine::<P>(&patch, v, &block);
     machine.add_context_history_hook(move |context| {
         history_closure.lock().unwrap().push(context.clone());
     });
@@ -327,14 +327,14 @@ pub fn test_transaction<P: Patch + Clone>(_name: &str, patch: P, v: &Value, debu
 
 use criterion::Criterion;
 
-pub fn bench_transaction<P: Patch + Clone + 'static>(_name: &str, patch: P, v: Value, c: &mut Criterion) {
+pub fn bench_transaction<P: Patch + 'static>(_name: &str, patch: P, v: Value, c: &mut Criterion) {
     c.bench_function(_name, move |b| {
         b.iter_with_large_setup(
             || {
                 let block = create_block(&v);
                 let history: Arc<Mutex<Vec<Context>>> = Arc::new(Mutex::new(Vec::new()));
                 let history_closure = history.clone();
-                let mut machine = create_machine(patch.clone(), &v, &block);
+                let mut machine = create_machine(&patch, &v, &block);
                 machine.add_context_history_hook(move |context| {
                     history_closure.lock().unwrap().push(context.clone());
                 });

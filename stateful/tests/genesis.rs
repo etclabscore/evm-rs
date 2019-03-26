@@ -109,7 +109,7 @@ fn genesis_state_root() {
         let balance = U256::from_dec_str(&value.balance).unwrap();
         let patch = MainnetEIP160Patch::default();
         let vm: SeqTransactionVM<_> = stateful.execute(
-            patch,
+            &patch,
             ValidTransaction {
                 caller: None,
                 gas_price: Gas::zero(),

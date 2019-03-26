@@ -36,7 +36,7 @@ impl AccountPatch for EmbeddedAccountPatch {
 }
 
 /// Represents different block range context.
-pub trait Patch: Clone {
+pub trait Patch {
     /// Account patch
     type Account: AccountPatch;
 

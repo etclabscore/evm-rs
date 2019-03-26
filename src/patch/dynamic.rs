@@ -3,7 +3,7 @@ use smallvec::SmallVec;
 
 use crate::patch::{AccountPatch, Patch, Precompiled};
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 /// AccountPatch that can be configured in client code runtime
 pub struct DynamicAccountPatch {
     /// Initial nonce for accounts.

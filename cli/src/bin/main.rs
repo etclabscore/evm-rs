@@ -14,8 +14,8 @@ use evm::{
     VMStatus, ValidTransaction, VM,
 };
 use evm_network_classic::{
-    MainnetByzantiumPatch, MainnetConstantinoplePatch, MainnetEIP150Patch, MainnetEIP160Patch, MainnetFrontierPatch,
-    MainnetHomesteadPatch,
+    HomesteadPatch, MainnetByzantiumPatch, MainnetConstantinoplePatch, MainnetEIP150Patch, MainnetEIP160Patch,
+    MainnetFrontierPatch, MainnetHomesteadPatch,
 };
 use gethrpc::{GethRPCClient, NormalGethRPCClient, RPCBlock};
 
@@ -208,6 +208,14 @@ fn main() {
         None
     };
 
+    // Bind pathes so they would outlive VM execution
+    let frontier = MainnetFrontierPatch::default();
+    let homestead = MainnetHomesteadPatch::default();
+    let eip150 = MainnetEIP150Patch::default();
+    let eip160 = MainnetEIP160Patch::default();
+    let byzantium = MainnetByzantiumPatch::default();
+    let constantinople = MainnetConstantinoplePatch::default();
+
     let mut vm: Box<VM> = if matches.is_present("CODE") {
         let context = Context {
             address,
@@ -224,14 +232,12 @@ fn main() {
         };
 
         match matches.value_of("PATCH") {
-            Some("frontier") => Box::new(SeqContextVM::new(MainnetFrontierPatch::default(), context, block)),
-            Some("homestead") => Box::new(SeqContextVM::new(MainnetHomesteadPatch::default(), context, block)),
-            Some("eip150") => Box::new(SeqContextVM::new(MainnetEIP150Patch::default(), context, block)),
-            Some("eip160") => Box::new(SeqContextVM::new(MainnetEIP160Patch::default(), context, block)),
-            Some("byzantium") => Box::new(SeqContextVM::new(MainnetByzantiumPatch::default(), context, block)),
-            Some("constantinople") => {
-                Box::new(SeqContextVM::new(MainnetConstantinoplePatch::default(), context, block))
-            }
+            Some("frontier") => Box::new(SeqContextVM::new(&frontier, context, block)),
+            Some("homestead") => Box::new(SeqContextVM::new(&homestead, context, block)),
+            Some("eip150") => Box::new(SeqContextVM::new(&eip150, context, block)),
+            Some("eip160") => Box::new(SeqContextVM::new(&eip160, context, block)),
+            Some("byzantium") => Box::new(SeqContextVM::new(&byzantium, context, block)),
+            Some("constantinople") => Box::new(SeqContextVM::new(&constantinople, context, block)),
             _ => panic!("Unsupported patch."),
         }
     } else {
@@ -255,23 +261,11 @@ fn main() {
         };
 
         match matches.value_of("PATCH") {
-            Some("frontier") => Box::new(SeqTransactionVM::new(
-                MainnetFrontierPatch::default(),
-                transaction,
-                block,
-            )),
-            Some("homestead") => Box::new(SeqTransactionVM::new(
-                MainnetHomesteadPatch::default(),
-                transaction,
-                block,
-            )),
-            Some("eip150") => Box::new(SeqTransactionVM::new(MainnetEIP150Patch::default(), transaction, block)),
-            Some("eip160") => Box::new(SeqTransactionVM::new(MainnetEIP160Patch::default(), transaction, block)),
-            Some("byzantium") => Box::new(SeqTransactionVM::new(
-                MainnetByzantiumPatch::default(),
-                transaction,
-                block,
-            )),
+            Some("frontier") => Box::new(SeqTransactionVM::new(&frontier, transaction, block)),
+            Some("homestead") => Box::new(SeqTransactionVM::new(&homestead, transaction, block)),
+            Some("eip150") => Box::new(SeqTransactionVM::new(&eip150, transaction, block)),
+            Some("eip160") => Box::new(SeqTransactionVM::new(&eip160, transaction, block)),
+            Some("byzantium") => Box::new(SeqTransactionVM::new(&byzantium, transaction, block)),
             _ => panic!("Unsupported patch."),
         }
     };
