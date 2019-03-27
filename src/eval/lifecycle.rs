@@ -157,7 +157,7 @@ impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
         beneficiary: Address,
         real_used_gas: Gas,
         preclaimed_value: U256,
-        fresh_account_state: &AccountState<P::Account>,
+        fresh_account_state: &AccountState<'a, P::Account>,
     ) -> Result<(), RequireError> {
         self.state.account_state.require(self.state.context.address)?;
         if !self.state.patch.account_patch().allow_partial_change() {
@@ -213,7 +213,7 @@ impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
     ///
     /// ### Panic
     /// Requires caller of the transaction to be committed.
-    pub fn finalize_context(&mut self, fresh_account_state: &AccountState<P::Account>) {
+    pub fn finalize_context(&mut self, fresh_account_state: &AccountState<'a, P::Account>) {
         match self.status() {
             MachineStatus::ExitedOk => (),
             MachineStatus::ExitedErr(_) => {

@@ -11,7 +11,7 @@ use bigint::{Address, Gas, H160, U256};
 
 /// Account patch for account related variables.
 /// Account patch is always static, as it's usually stays constant for any given network.
-pub trait AccountPatch: Clone {
+pub trait AccountPatch {
     /// Initial nonce for accounts.
     fn initial_nonce(&self) -> U256;
     /// Initial create nonce for accounts. (EIP161.a)

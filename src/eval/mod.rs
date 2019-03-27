@@ -101,7 +101,7 @@ pub struct State<'a, M, P: Patch> {
     pub refunded_gas: Gas,
 
     /// The current account commitment states.
-    pub account_state: AccountState<P::Account>,
+    pub account_state: AccountState<'a, P::Account>,
     /// Logs appended.
     pub logs: Vec<Log>,
     /// All removed accounts using the SUICIDE opcode.
@@ -254,7 +254,12 @@ impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
     }
 
     /// Create a new runtime with the given states.
-    pub fn with_states(patch: &'a P, context: Context, depth: usize, account_state: AccountState<P::Account>) -> Self {
+    pub fn with_states(
+        patch: &'a P,
+        context: Context,
+        depth: usize,
+        account_state: AccountState<'a, P::Account>,
+    ) -> Self {
         let memory_limit = patch.memory_limit();
         Machine {
             status: MachineStatus::Running,

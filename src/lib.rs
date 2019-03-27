@@ -257,14 +257,14 @@ pub type SeqTransactionVM<'a, P> = TransactionVM<'a, SeqMemory, P>;
 pub struct ContextVM<'a, M, P: Patch> {
     runtime: Runtime,
     machines: Vec<Machine<'a, M, P>>,
-    fresh_account_state: AccountState<P::Account>,
+    fresh_account_state: AccountState<'a, P::Account>,
 }
 
 impl<'a, M: Memory, P: Patch> ContextVM<'a, M, P> {
     /// Create a new VM using the given context, block header and patch.
     pub fn new(patch: &'a P, context: Context, block: HeaderParams) -> Self {
         let mut machines = Vec::new();
-        let account_patch = patch.account_patch().clone();
+        let account_patch = patch.account_patch();
         machines.push(Machine::new(patch, context, 1));
         ContextVM {
             machines,
@@ -278,7 +278,7 @@ impl<'a, M: Memory, P: Patch> ContextVM<'a, M, P> {
         patch: &'a P,
         context: Context,
         block: HeaderParams,
-        account_state: AccountState<P::Account>,
+        account_state: AccountState<'a, P::Account>,
         blockhash_state: BlockhashState,
     ) -> Self {
         let mut machines = Vec::new();
@@ -295,13 +295,14 @@ impl<'a, M: Memory, P: Patch> ContextVM<'a, M, P> {
         patch: &'a P,
         context: Context,
         block: HeaderParams,
-        account_state: AccountState<P::Account>,
+        account_state: AccountState<'a, P::Account>,
         blockhash_state: BlockhashState,
         f: F,
     ) -> Self {
         let mut vm = Self::with_states(patch, context, block, account_state, blockhash_state);
         f(&mut vm);
-        vm.fresh_account_state = vm.machines[0].state().account_state.clone();
+        vm.fresh_account_state =
+            AccountState::derive_from(patch.account_patch(), &vm.machines[0].state().account_state);
         vm
     }
 

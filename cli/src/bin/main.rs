@@ -14,8 +14,8 @@ use evm::{
     VMStatus, ValidTransaction, VM,
 };
 use evm_network_classic::{
-    HomesteadPatch, MainnetByzantiumPatch, MainnetConstantinoplePatch, MainnetEIP150Patch, MainnetEIP160Patch,
-    MainnetFrontierPatch, MainnetHomesteadPatch,
+    MainnetByzantiumPatch, MainnetConstantinoplePatch, MainnetEIP150Patch, MainnetEIP160Patch, MainnetFrontierPatch,
+    MainnetHomesteadPatch,
 };
 use gethrpc::{GethRPCClient, NormalGethRPCClient, RPCBlock};
 

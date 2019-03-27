@@ -314,14 +314,14 @@ enum TransactionVMState<'a, M, P: Patch> {
         preclaimed_value: U256,
         finalized: bool,
         code_deposit: bool,
-        fresh_account_state: AccountState<P::Account>,
+        fresh_account_state: AccountState<'a, P::Account>,
     },
     Constructing {
         patch: &'a P,
         transaction: ValidTransaction,
         block: HeaderParams,
 
-        account_state: AccountState<P::Account>,
+        account_state: AccountState<'a, P::Account>,
         blockhash_state: BlockhashState,
     },
 }
@@ -387,10 +387,18 @@ impl<'a, M: Memory, P: Patch> TransactionVM<'a, M, P> {
                 ref account_state,
                 ref blockhash_state,
                 ..
-            } => (patch, account_state.clone(), blockhash_state.clone()),
+            } => (
+                patch,
+                AccountState::derive_from(patch.account_patch(), &account_state),
+                blockhash_state.clone(),
+            ),
             TransactionVMState::Running { patch, ref vm, .. } => {
                 let state = vm.machines[0].state();
-                (patch, state.account_state.clone(), vm.runtime.blockhash_state.clone())
+                (
+                    patch,
+                    AccountState::derive_from(patch.account_patch(), &state.account_state),
+                    vm.runtime.blockhash_state.clone(),
+                )
             }
         };
 
@@ -408,7 +416,7 @@ impl<'a, M: Memory, P: Patch> TransactionVM<'a, M, P> {
         patch: &'a P,
         transaction: ValidTransaction,
         block: HeaderParams,
-        account_state: AccountState<P::Account>,
+        account_state: AccountState<'a, P::Account>,
         blockhash_state: BlockhashState,
     ) -> Self {
         TransactionVM(TransactionVMState::Constructing {
