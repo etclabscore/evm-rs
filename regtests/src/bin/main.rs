@@ -51,7 +51,7 @@ fn from_rpc_log(log: &RPCLog) -> Log {
     }
 }
 
-fn handle_fire<T: GethRPCClient, P: Patch + Clone>(client: &mut T, vm: &mut SeqTransactionVM<P>, last_block_id: usize) {
+fn handle_fire<T: GethRPCClient, P: Patch>(client: &mut T, vm: &mut SeqTransactionVM<P>, last_block_id: usize) {
     let last_block_number = format!("0x{:x}", last_block_id);
     loop {
         match vm.fire() {
@@ -152,17 +152,17 @@ fn test_block<T: GethRPCClient, P: Patch + Default + Clone>(client: &mut T, numb
     let last_number = format!("0x{:x}", last_id);
     let cur_number = block.number.clone().unwrap();
     let block_header = from_rpc_block(&block);
+    let patch = P::default();
 
     let mut last_vm: Option<SeqTransactionVM<P>> = None;
     for transaction_hash in &block.transactions {
         println!("\nworking on transaction {}", transaction_hash);
         let transaction = from_rpc_transaction(&client.get_transaction_by_hash(&transaction_hash).unwrap());
         let receipt = client.get_transaction_receipt(&transaction_hash).unwrap();
-
-        let mut vm = if last_vm.is_none() {
-            SeqTransactionVM::new(P::default(), transaction, block_header.clone())
+        let mut vm = if let Some(last_vm) = last_vm.take() {
+            SeqTransactionVM::with_previous(transaction, block_header.clone(), &last_vm)
         } else {
-            SeqTransactionVM::with_previous(transaction, block_header.clone(), last_vm.as_ref().unwrap())
+            SeqTransactionVM::new(&patch, transaction, block_header.clone())
         };
 
         handle_fire(client, &mut vm, last_id);

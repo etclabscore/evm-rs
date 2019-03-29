@@ -204,13 +204,13 @@ impl<'b, D: DatabaseOwned> Stateful<'b, D> {
         }
     }
 
-    pub fn call<M: Memory, P: Patch + Clone>(
+    pub fn call<'a, M: Memory, P: Patch>(
         &self,
-        patch: P,
+        patch: &'a P,
         transaction: ValidTransaction,
         block: &HeaderParams,
         most_recent_block_hashes: &[H256],
-    ) -> TransactionVM<M, P> {
+    ) -> TransactionVM<'a, M, P> {
         assert!(U256::from(most_recent_block_hashes.len()) >= min(block.number, U256::from(256)));
 
         let mut vm = TransactionVM::new(patch, transaction, block.clone());
@@ -409,13 +409,13 @@ impl<'b, D: DatabaseOwned> Stateful<'b, D> {
         self.root = state.root();
     }
 
-    pub fn execute<M: Memory, P: Patch + Clone>(
+    pub fn execute<'a, M: Memory, P: Patch>(
         &mut self,
-        patch: P,
+        patch: &'a P,
         transaction: ValidTransaction,
         block: &HeaderParams,
         most_recent_block_hashes: &[H256],
-    ) -> TransactionVM<M, P> {
+    ) -> TransactionVM<'a, M, P> {
         let vm = self.call::<_, P>(patch, transaction, &block, most_recent_block_hashes);
         let mut accounts = Vec::new();
         for account in vm.accounts() {

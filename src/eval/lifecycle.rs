@@ -30,7 +30,7 @@ use bigint::{Address, Gas, M256, U256};
 /// should first call `code_deposit` if it is a contract creation
 /// transaction. After that, it should call `finalize`.
 
-impl<M: Memory, P: Patch> Machine<M, P> {
+impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
     /// Initialize a MessageCall transaction.
     ///
     /// ### Panic
@@ -157,7 +157,7 @@ impl<M: Memory, P: Patch> Machine<M, P> {
         beneficiary: Address,
         real_used_gas: Gas,
         preclaimed_value: U256,
-        fresh_account_state: &AccountState<P::Account>,
+        fresh_account_state: &AccountState<'a, P::Account>,
     ) -> Result<(), RequireError> {
         self.state.account_state.require(self.state.context.address)?;
         if !self.state.patch.account_patch().allow_partial_change() {
@@ -213,7 +213,7 @@ impl<M: Memory, P: Patch> Machine<M, P> {
     ///
     /// ### Panic
     /// Requires caller of the transaction to be committed.
-    pub fn finalize_context(&mut self, fresh_account_state: &AccountState<P::Account>) {
+    pub fn finalize_context(&mut self, fresh_account_state: &AccountState<'a, P::Account>) {
         match self.status() {
             MachineStatus::ExitedOk => (),
             MachineStatus::ExitedErr(_) => {
@@ -229,7 +229,7 @@ impl<M: Memory, P: Patch> Machine<M, P> {
     /// function. Depending whether the current runtime is invoking a
     /// ContractCreation or MessageCall instruction, it will apply
     /// various states back.
-    pub fn apply_sub(&mut self, sub: Machine<M, P>) {
+    pub fn apply_sub(&mut self, sub: Machine<'a, M, P>) {
         #[cfg(feature = "std")]
         use std::mem::swap;
 
@@ -249,7 +249,7 @@ impl<M: Memory, P: Patch> Machine<M, P> {
         }
     }
 
-    fn apply_create(&mut self, mut sub: Machine<M, P>) {
+    fn apply_create(&mut self, mut sub: Machine<'a, M, P>) {
         sub.code_deposit();
 
         let sub_total_used_gas = sub.state.total_used_gas();
@@ -272,7 +272,7 @@ impl<M: Memory, P: Patch> Machine<M, P> {
         }
     }
 
-    fn apply_call(&mut self, mut sub: Machine<M, P>, out_start: U256, out_len: U256) {
+    fn apply_call(&mut self, mut sub: Machine<'a, M, P>, out_start: U256, out_len: U256) {
         let sub_total_used_gas = sub.state.total_used_gas();
 
         self.state.logs.append(&mut sub.state.logs);

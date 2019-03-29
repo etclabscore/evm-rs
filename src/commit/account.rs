@@ -196,23 +196,44 @@ impl AccountChange {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 /// A struct that manages the current account state for one EVM.
-pub struct AccountState<A: AccountPatch> {
+pub struct AccountState<'a, A: AccountPatch> {
     accounts: Map<Address, AccountChange>,
     orig_storage: RefCell<Map<Address, Storage>>,
     codes: Map<Address, Rc<Vec<u8>>>,
-    account_patch: A,
+    account_patch: &'a A,
 }
 
-impl<A: AccountPatch> AccountState<A> {
+impl<'a, A: AccountPatch> AccountState<'a, A> {
     /// Create new AccountState configured with AccountPatch
-    pub fn new(account_patch: A) -> Self {
+    pub fn new(account_patch: &'a A) -> Self {
         Self {
             accounts: Map::new(),
             codes: Map::new(),
             orig_storage: RefCell::new(Map::new()),
             account_patch,
+        }
+    }
+
+    /// Clone with new AccountPatch
+    pub fn derive_from<'b>(account_patch: &'a A, prev: &AccountState<'b, A>) -> Self {
+        Self {
+            accounts: prev.accounts.clone(),
+            orig_storage: prev.orig_storage.clone(),
+            codes: prev.codes.clone(),
+            account_patch,
+        }
+    }
+}
+
+impl<'a, A: AccountPatch> Clone for AccountState<'a, A> {
+    fn clone(&self) -> Self {
+        Self {
+            accounts: self.accounts.clone(),
+            orig_storage: self.orig_storage.clone(),
+            codes: self.codes.clone(),
+            account_patch: self.account_patch,
         }
     }
 }
@@ -221,7 +242,7 @@ fn is_empty(nonce: U256, balance: U256, code: &[u8]) -> bool {
     nonce == U256::zero() && balance == U256::zero() && code.is_empty()
 }
 
-impl<A: AccountPatch> AccountState<A> {
+impl<'a, A: AccountPatch> AccountState<'a, A> {
     fn insert_account(&mut self, account: AccountChange) {
         match account {
             AccountChange::Full {

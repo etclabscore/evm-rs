@@ -76,9 +76,9 @@ impl AddAssign<Gas> for GasUsage {
 }
 
 /// A VM state without PC.
-pub struct State<M, P: Patch> {
+pub struct State<'a, M, P: Patch> {
     /// Current patch
-    pub patch: P,
+    pub patch: &'a P,
     /// Memory of this runtime.
     pub memory: M,
     /// Stack of this runtime.
@@ -101,7 +101,7 @@ pub struct State<M, P: Patch> {
     pub refunded_gas: Gas,
 
     /// The current account commitment states.
-    pub account_state: AccountState<P::Account>,
+    pub account_state: AccountState<'a, P::Account>,
     /// Logs appended.
     pub logs: Vec<Log>,
     /// All removed accounts using the SUICIDE opcode.
@@ -116,7 +116,7 @@ pub struct State<M, P: Patch> {
     pub position: usize,
 }
 
-impl<M, P: Patch> State<M, P> {
+impl<'a, M, P: Patch> State<'a, M, P> {
     /// Memory gas, part of total used gas.
     pub fn memory_gas(&self) -> Gas {
         memory_gas(self.memory_cost)
@@ -164,8 +164,8 @@ impl Runtime {
 }
 
 /// A VM state with PC.
-pub struct Machine<M, P: Patch> {
-    state: State<M, P>,
+pub struct Machine<'a, M, P: Patch> {
+    state: State<'a, M, P>,
     status: MachineStatus,
 }
 
@@ -211,7 +211,7 @@ pub enum Control {
     InvokeCall(Context, (U256, U256)),
 }
 
-impl<M: Memory, P: Patch + Clone> Machine<M, P> {
+impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
     /// Derive this runtime to create a sub runtime. This will not
     /// modify the current runtime, and it will have a chance to
     /// review whether it wants to accept the result of this sub
@@ -220,7 +220,7 @@ impl<M: Memory, P: Patch + Clone> Machine<M, P> {
         Machine {
             status: MachineStatus::Running,
             state: State {
-                patch: self.state.patch.clone(),
+                patch: self.state.patch,
                 memory: M::new(self.state.patch.memory_limit()),
                 stack: Stack::default(),
 
@@ -246,15 +246,20 @@ impl<M: Memory, P: Patch + Clone> Machine<M, P> {
     }
 }
 
-impl<M: Memory, P: Patch> Machine<M, P> {
+impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
     /// Create a new runtime.
-    pub fn new(patch: P, context: Context, depth: usize) -> Self {
+    pub fn new(patch: &'a P, context: Context, depth: usize) -> Self {
         let account_patch = patch.account_patch().clone();
         Self::with_states(patch, context, depth, AccountState::new(account_patch))
     }
 
     /// Create a new runtime with the given states.
-    pub fn with_states(patch: P, context: Context, depth: usize, account_state: AccountState<P::Account>) -> Self {
+    pub fn with_states(
+        patch: &'a P,
+        context: Context,
+        depth: usize,
+        account_state: AccountState<'a, P::Account>,
+    ) -> Self {
         let memory_limit = patch.memory_limit();
         Machine {
             status: MachineStatus::Running,
@@ -284,7 +289,7 @@ impl<M: Memory, P: Patch> Machine<M, P> {
     }
 }
 
-impl<M: Memory, P: Patch> Machine<M, P> {
+impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
     /// Commit a new account into this runtime.
     pub fn commit_account(&mut self, commitment: AccountCommitment) -> Result<(), CommitError> {
         self.state.account_state.commit(commitment)
@@ -559,6 +564,11 @@ impl<M: Memory, P: Patch> Machine<M, P> {
     /// Get the runtime state.
     pub fn state(&self) -> &State<M, P> {
         &self.state
+    }
+
+    /// Take the runtime state
+    pub fn take_state(self) -> State<'a, M, P> {
+        self.state
     }
 
     /// Get the runtime PC.
