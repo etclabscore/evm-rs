@@ -244,9 +244,7 @@ impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
             },
         }
     }
-}
 
-impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
     /// Create a new runtime.
     pub fn new(patch: &'a P, context: Context, depth: usize) -> Self {
         let account_patch = patch.account_patch().clone();
@@ -287,9 +285,7 @@ impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
             },
         }
     }
-}
 
-impl<'a, M: Memory, P: Patch> Machine<'a, M, P> {
     /// Commit a new account into this runtime.
     pub fn commit_account(&mut self, commitment: AccountCommitment) -> Result<(), CommitError> {
         self.state.account_state.commit(commitment)

@@ -375,9 +375,7 @@ impl<'a, M: Memory, P: Patch> TransactionVM<'a, M, P> {
             TransactionVMState::Constructing { .. } => None,
         }
     }
-}
 
-impl<'a, M: Memory, P: Patch> TransactionVM<'a, M, P> {
     /// Create a new VM with the result of the previous VM. This is
     /// usually used by transaction for chaining them.
     pub fn with_previous(transaction: ValidTransaction, block: HeaderParams, vm: &TransactionVM<'a, M, P>) -> Self {
