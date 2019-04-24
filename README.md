@@ -1,3 +1,5 @@
+# Moved to https://github.com/ethereumproject/evm-rs
+
 # SputnikVM: Rust Ethereum Virtual Machine Implementation
 
 [![Build Status](https://travis-ci.org/etclabscore/sputnikvm.svg?branch=master)](https://travis-ci.org/etclabscore/sputnikvm)
